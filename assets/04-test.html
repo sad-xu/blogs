@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>04 test</title>
+</head>
+<body>
+  <button id="button">click</button> 
+
+  <script type="text/javascript">
+    let request = param => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          console.log(`request: ${param}`)
+          resolve(param)
+        }, 100)
+      })
+    }
+
+    const params = Array.from({length: 5}).map((item, index) => index)
+
+    // #1
+    // document.getElementById('button').addEventListener('click', async () => {
+    //   for (const v of params) {
+    //     await request(v)
+    //   }
+    // })
+
+    // #2
+    // document.getElementById('button').addEventListener('click', () => {
+    //   let p = Promise.resolve()
+    //   for (const v of params) {
+    //     p = p.then(() => request(v))
+    //   }
+    // })
+
+    // #3
+    // function loop(params) {
+    //   request(params.splice(0, 1)).then(() => {
+    //     if (params.length) {
+    //       loop(params)
+    //     } else return console.log('over')
+    //   })
+    // }
+    // document.getElementById('button').addEventListener('click', () => {
+    //   loop(params)
+    // })
+
+    // #4
+    document.getElementById('button').addEventListener('click', () => {
+      params.reduce((acc, param) => {
+        return acc.then(() => request(param)) 
+      }, Promise.resolve())
+    })
+
+  </script>
+</body>
+</html>
