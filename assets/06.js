@@ -4,7 +4,7 @@ const ctx = canvas.getContext('2d')
 let width, height
 
 // 背景色 r g b
-const BG = [238, 238, 238]
+const BG = [100, 100, 100] // [238, 238, 238]
 
 // 角度列表
 const numAngles = 6
@@ -47,13 +47,13 @@ function init() {
   
   ctx.beginPath()
   ctx.rect(0, 0, width, height)
-  ctx.fillStyle = `rgba(${BG[0]}, ${BG[1]}, ${BG[2]}, ${1})`
+  ctx.fillStyle = `rgba(${BG[0]},${BG[1]},${BG[2]},0.8)`
   ctx.fill()
 }
 
 function animate() {
   if (CONFIG.fade > 0) {
-    fade(ctx, CONFIG.fade/10, width, height)
+    fade(ctx, CONFIG.fade / 10, width, height)
   }
   draw()
   // window.requestAnimationFrame(function(){animate()})
@@ -62,7 +62,7 @@ function animate() {
 function fade(ctx, amt, width, height) {
   ctx.beginPath()
   ctx.rect(0, 0, width, height)
-  ctx.fillStyle = `rgba(${BG[0]}, ${BG[1]}, ${BG[2]}, ${amt})`
+  ctx.fillStyle = `rgba(${BG[0]},${BG[1]},${BG[2]},${amt})`
   ctx.fill()
 }
 
@@ -177,3 +177,15 @@ init()
 
 // setInterval(animate, 40)
 // window.requestAnimationFrame(animate);
+
+
+
+/* test */
+// 用同一种颜色在某一区域多次绘制，提取区域内的色值
+// ctx.beginPath()
+// ctx.rect(0,0,100,100)
+// ctx.fillStyle = 'rgba(0,0,0,0.5)'
+// ctx.fill()
+// ctx.getImageData(1, 1, 1, 1).data
+
+
