@@ -4,7 +4,7 @@ const ctx = canvas.getContext('2d')
 let width, height
 
 // 背景色 r g b
-const BG = [100, 100, 100] // [238, 238, 238]
+const BG = [238, 238, 238]
 
 // 角度列表
 const numAngles = 6
@@ -15,31 +15,12 @@ let angles = Array.from({length: numAngles}).map((v, i) => {
 let travelers = []
 
 const CONFIG = {
-  // spring: 0.35,
-  // ease: 0.84,
-  // strokeMax: 10,
-  chanceToSplit: 0.2, // 分裂率
-  num: 50,  // 同时存在数
-  max: 1500, // 最大存在数
-  // alpha: 1,
-  fade: 0.3,
-  clear: function (){removeTravelers(), clear(ctx)}
+  speed: 2, // 速度
+  chanceToSplit: 0.1, // 分裂率 密度
+  num: 10,  // 同时存在数
+  max: 1000, // 最大存在数
+  fade: 0 // 消失透明度
 }
-
-
-
-// var gui = new dat.GUI();
-// gui.add(CONFIG, 'num', 0, 150).step(1);
-// gui.add(CONFIG, 'max', 1, 3000).step(1);
-// gui.add(CONFIG, 'chanceToSplit', 0, 1);
-// // gui.add(CONFIG, 'ease', 0, 1);
-// // gui.add(CONFIG, 'alpha', 0, 1);
-// // gui.add(CONFIG, 'strokeMax', 1, 50).step(1);
-// // gui.add(CONFIG, 'strokeMin', 0, 50).step(1);
-// gui.add(CONFIG, 'fade', 0, 1).step(0.1);
-// gui.add(CONFIG, 'draw');
-// gui.add(CONFIG, 'clear');
-// gui.closed = true;
 
 function init() {
   canvas.width = width = window.innerWidth
@@ -47,53 +28,43 @@ function init() {
   
   ctx.beginPath()
   ctx.rect(0, 0, width, height)
-  ctx.fillStyle = `rgba(${BG[0]},${BG[1]},${BG[2]},0.8)`
+  ctx.fillStyle = `rgba(${BG[0]},${BG[1]},${BG[2]},1)`
   ctx.fill()
 }
 
 function animate() {
   if (CONFIG.fade > 0) {
-    fade(ctx, CONFIG.fade / 10, width, height)
+    ctx.beginPath()
+    ctx.rect(0, 0, width, height)
+    ctx.fillStyle = `rgba(${BG[0]},${BG[1]},${BG[2]},${CONFIG.fade / 10})`
+    ctx.fill()
   }
-  draw()
-  // window.requestAnimationFrame(function(){animate()})
-}
-
-function fade(ctx, amt, width, height) {
-  ctx.beginPath()
-  ctx.rect(0, 0, width, height)
-  ctx.fillStyle = `rgba(${BG[0]},${BG[1]},${BG[2]},${amt})`
-  ctx.fill()
-}
-
-function draw() {
-  let traveler
-  for (let t in travelers) {
-    traveler = travelers[t]
-    let ret = traveler.update()
-    if (ret === true) {
+  for (let i = 0; i < travelers.length; i++) {
+    let traveler = travelers[i]
+    if (traveler.update()) {
       traveler.draw()
     } else {
-      travelers.splice(travelers.indexOf(status), 1)
-      delete ret
+      travelers.splice(i, 1)
+      i--
+      delete traveler
     }
   }
+
   if (travelers.length < CONFIG.num) {
-    var a = Math.PI/2
-    // var a = angles[Math.floor(Math.random() * angles.length)]
-    var s = 3
-    var vx = Math.cos(a) * s
-    var vy = Math.sin(a) * s
-    addTraveler(Math.random()*canvas.width, canvas.height, vx, vy);
+    addTraveler(Math.random() * width, Math.random() * height)
   }
+
+  window.requestAnimationFrame(animate)
 }
 
-function addTraveler(x, y, vx, vy){
-  travelers.push(new Traveler(ctx, x, y, vx, vy))
+function addTraveler(x, y){
+  let a = angles[Math.floor(Math.random() * angles.length)]
+  let vx = Math.cos(a) * CONFIG.speed
+  let vy = Math.sin(a) * CONFIG.speed
+  travelers.push(new Traveler(x, y, vx, vy))
 }
 
-function Traveler(ctx, x, y, vx, vy) {
-  this.ctx = ctx
+function Traveler(x, y, vx, vy) {
   // 起点
   this.x = x
   this.y = y
@@ -103,80 +74,65 @@ function Traveler(ctx, x, y, vx, vy) {
   // 变化值
   this.vx = vx
   this.vy = vy
-  // this.p = Math.random() * 0.3 + 0.1
-  this.step = 0
-  this.active = true
+  // this.active = true
 }
 
+Traveler.prototype.ctx = ctx
+
 Traveler.prototype.draw = function() {
-  if (this.active) {
-    const ctx = this.ctx
-    ctx.beginPath()
-    ctx.lineWidth = 0.8
-    ctx.strokeStyle = "#000000"
-    ctx.moveTo(this.x1, this.y1)
-    ctx.lineTo(this.x, this.y)
-    ctx.stroke()
-  }
+  const ctx = this.ctx
+  ctx.beginPath()
+  ctx.lineWidth = 0.8
+  ctx.strokeStyle = "#000"
+  ctx.moveTo(this.x, this.y)
+  ctx.lineTo(this.x1, this.y1)
+  ctx.stroke()
 }
 
 // 正常更新 - true  抹除 - this
 Traveler.prototype.update = function() {
-  if (this.active) {
-    this.step ++
-    if (Math.random() < CONFIG.chanceToSplit && travelers.length < CONFIG.max) {
-      let a = angles[Math.floor(Math.random() * angles.length)]
-      //var a = Math.atan2(this.vy, this.vx)// + Math.random() * 0.2
-      let s = 0.8 + Math.random() * 1.5
-      let vx = Math.cos(a + Math.PI/2) * s
-      let vy = Math.sin(a + Math.PI/2) * s
-      addTraveler(this.x1, this.y1, vx, vy)
-    }
-    this.x1 = this.x
-    this.y1 = this.y
-    this.x += this.vx
-    this.y += this.vy
-    if (this.getColor(this.x, this.y) < 0.7 ){
-      this.active = false
-      return this
-      // this.die()
-    } else return true
-  } else return this
+  if (Math.random() < CONFIG.chanceToSplit && travelers.length < CONFIG.max) {
+    // let a = angles[Math.floor(Math.random() * angles.length)]
+    // let s = 0.8 + Math.random() * 1.5
+    // let vx = Math.cos(a + Math.PI/2) * s
+    // let vy = Math.sin(a + Math.PI/2) * s
+    // travelers.push(new Traveler(this.x, this.y, vx, vy))
+    addTraveler(this.x, this.y)
+  }
+  this.x = this.x1
+  this.x1 += this.vx
+  this.y = this.y1
+  this.y1 += this.vy
+  // [this.x, this.x1] = [this.x1, this.x1 + this.vx]
+  // [this.y, this.y1] = [this.y1, this.y1 + this.vy]
+  if (this.getColor(this.x1, this.y1) < 0.8 ) {
+    // this.active = false
+    return false
+  } else return true
 }
 
 // 获取指定像素点透明度
-Traveler.prototype.getColor = function() {
+Traveler.prototype.getColor = function(x, y) {
   let pix = ctx.getImageData(x, y, 1, 1).data
-  return pix[0] / 255 * pix[1] / 255 * pix[3] / 255
-}
-
-function clear(ctx) {
-  ctx.beginPath();
-  ctx.rect(0, 0, width, height)
-  ctx.fillStyle = `rgba(${BG[0]}, ${BG[1]}, ${BG[2]}, ${1})`
-  ctx.fill()
-}
-
-function removeTravelers() {
-  while(travelers.length > 0){
-    delete travelers.pop()
-  }
+  // console.log(pix)
+  return pix[0] / 255 * pix[1] / 255
 }
 
 document.onmousedown = function(e){
   // var a = Math.random() * Math.PI * 2
-  var a = angles[Math.floor(Math.random() * angles.length)]
-  var s = 3
-  var vx = Math.cos(a) * s
-  var vy = Math.sin(a) * s
-  addTraveler(e.pageX, e.pageY, vx, vy)
+  // var a = angles[Math.floor(Math.random() * angles.length)]
+  // var s = 3
+  // var vx = Math.cos(a) * s
+  // var vy = Math.sin(a) * s
+  addTraveler(e.pageX, e.pageY)
 }
 
 window.addEventListener('resize', init)
-init()
 
+init()
+animate()
 // setInterval(animate, 40)
-// window.requestAnimationFrame(animate);
+// window.requestAnimationFrame(animate)
 
 
 
