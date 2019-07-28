@@ -105,7 +105,7 @@ Traveler.prototype.update = function() {
   this.y1 += this.vy
   // [this.x, this.x1] = [this.x1, this.x1 + this.vx]
   // [this.y, this.y1] = [this.y1, this.y1 + this.vy]
-  if (this.getColor(this.x1, this.y1) < 0.8 ) {
+  if (this.getColor(this.x1, this.y1) < 0.8 ) { // 前方有阻碍
     // this.active = false
     return false
   } else return true
