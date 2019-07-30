@@ -12,7 +12,7 @@ let angles = Array.from({length: numAngles}).map((v, i) => {
   return Math.PI * 2 / numAngles * i - Math.PI / 2
 })
 
-let travelers = []
+let lines = []
 
 const CONFIG = {
   speed: 2, // 速度
@@ -39,32 +39,37 @@ function animate() {
     ctx.fillStyle = `rgba(${BG[0]},${BG[1]},${BG[2]},${CONFIG.fade / 10})`
     ctx.fill()
   }
-  for (let i = 0; i < travelers.length; i++) {
-    let traveler = travelers[i]
-    if (traveler.update()) {
-      traveler.draw()
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i]
+    let updateStatus = line.update()
+    if (updateStatus.branch) {
+      let {x, y} = updateStatus.branch
+      addLine(x, y)
+    }
+    if (updateStatus.flag) {
+      line.draw()
     } else {
-      travelers.splice(i, 1)
+      lines.splice(i, 1)
       i--
-      delete traveler
+      delete line
     }
   }
 
-  if (travelers.length < CONFIG.num) {
-    addTraveler(Math.random() * width, Math.random() * height)
+  if (lines.length < CONFIG.num) {
+    addLine(Math.random() * width, Math.random() * height)
   }
 
   window.requestAnimationFrame(animate)
 }
 
-function addTraveler(x, y){
+function addLine(x, y){
   let a = angles[Math.floor(Math.random() * angles.length)]
   let vx = Math.cos(a) * CONFIG.speed
   let vy = Math.sin(a) * CONFIG.speed
-  travelers.push(new Traveler(x, y, vx, vy))
+  lines.push(new Line(x, y, vx, vy))
 }
 
-function Traveler(x, y, vx, vy) {
+function Line(x, y, vx, vy) {
   // 起点
   this.x = x
   this.y = y
@@ -74,12 +79,11 @@ function Traveler(x, y, vx, vy) {
   // 变化值
   this.vx = vx
   this.vy = vy
-  // this.active = true
 }
 
-Traveler.prototype.ctx = ctx
+Line.prototype.ctx = ctx
 
-Traveler.prototype.draw = function() {
+Line.prototype.draw = function() {
   const ctx = this.ctx
   ctx.beginPath()
   ctx.lineWidth = 0.8
@@ -89,51 +93,39 @@ Traveler.prototype.draw = function() {
   ctx.stroke()
 }
 
-// 正常更新 - true  抹除 - this
-Traveler.prototype.update = function() {
-  if (Math.random() < CONFIG.chanceToSplit && travelers.length < CONFIG.max) {
-    // let a = angles[Math.floor(Math.random() * angles.length)]
-    // let s = 0.8 + Math.random() * 1.5
-    // let vx = Math.cos(a + Math.PI/2) * s
-    // let vy = Math.sin(a + Math.PI/2) * s
-    // travelers.push(new Traveler(this.x, this.y, vx, vy))
-    addTraveler(this.x, this.y)
+// { flag: Boolean, branch: {x, y} }
+Line.prototype.update = function() {
+  let updateStatus = {}
+  if (Math.random() < CONFIG.chanceToSplit && lines.length < CONFIG.max) {
+    updateStatus.branch = {
+      x: this.x,
+      y: this.y
+    }
   }
+
   this.x = this.x1
-  this.x1 += this.vx
+  this.x1 += Math.abs(this.vx < 0.0001) ? Math.random() - 1 : this.vx * Math.random()
   this.y = this.y1
-  this.y1 += this.vy
-  // [this.x, this.x1] = [this.x1, this.x1 + this.vx]
-  // [this.y, this.y1] = [this.y1, this.y1 + this.vy]
-  if (this.getColor(this.x1, this.y1) < 0.8 ) { // 前方有阻碍
-    // this.active = false
-    return false
-  } else return true
+  this.y1 += Math.abs(this.vy < 0.0001) ? Math.random() - 1 : this.vy * Math.random()
+
+  updateStatus.flag = this.ctx.getImageData(this.x1, this.y1, 1, 1).data[0] >= 138
+  return updateStatus
 }
 
 // 获取指定像素点透明度
-Traveler.prototype.getColor = function(x, y) {
-  let pix = ctx.getImageData(x, y, 1, 1).data
-  // console.log(pix)
-  return pix[0] / 255 * pix[1] / 255
-}
+// Line.prototype.getColor = function(x, y) {
+//   let pix = ctx.getImageData(x, y, 1, 1).data
+//   return pix[0] // 255
+// }
 
 document.onmousedown = function(e){
-  // var a = Math.random() * Math.PI * 2
-  // var a = angles[Math.floor(Math.random() * angles.length)]
-  // var s = 3
-  // var vx = Math.cos(a) * s
-  // var vy = Math.sin(a) * s
-  addTraveler(e.pageX, e.pageY)
+  addLine(e.pageX, e.pageY)
 }
 
 window.addEventListener('resize', init)
 
 init()
 animate()
-// setInterval(animate, 40)
-// window.requestAnimationFrame(animate)
-
 
 
 /* test */
