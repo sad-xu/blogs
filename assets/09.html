@@ -2,44 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>09</title>
+  <title>Hummingbird</title>
+  <link rel="stylesheet" type="text/css" href="./09.css">
 </head>
 <body>
-  <button id="button">click</button>
-
-  <script type="text/javascript">
-    // "use strict"
-    document.getElementById('button').addEventListener('click', () => {
-      console.log('loop:', loop(17900))
-      // setTimeout(() => {
-      // console.log('tail loop:', tailLoop(8961))
-      // }, 500)
-    })
-
-    function loop(n) {
-      // console.log(n)
-      // let time = +new Date() + 1000
-      // while(+new Date() < time) {}
-      if (n === 1) return 1
-      return n + loop(n - 1)
-    }
-
-    function tailLoop(n, sum = 1) {
-      // let time = +new Date() + 1000
-      // while(+new Date() < time) {}
-      if (n === 1) return sum
-      return tailLoop(n-1, n + sum)
-    }
-
-
-    // 不使用原因 PTC STC
-    // 1. 不知道写对没
-    // 2. 难调试
-
-    // continue 未实现
-    // 1. 没写对就报错
-    // 2. 
-
-  </script>
+  <div id="hummingbird">
+    <div class="body">
+      <div class="back"></div>
+      <div class="wings"></div>
+      <div class="head">
+        <!-- 颈部 -->
+        <div class="nape"></div>
+        <!-- 喙 -->
+        <div class="beak"></div>
+      </div>
+    </div>
+    <!-- <div class="platform"></div> -->
+  </div>
 </body>
 </html>
